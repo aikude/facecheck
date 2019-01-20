@@ -1,0 +1,11 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Courier New", Courier, monospace, "Helvetica Neue", sans-serif;
+  background: linear-gradient(to right, rgba(200,0,200, 0.7),rgba(0,0,200, 0.6));
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
+}
