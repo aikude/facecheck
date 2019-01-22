@@ -18,14 +18,18 @@ class SignIn extends React.Component {
 
     onSubmitSignin = () => {
         const endpoint = SERVER_URL + '/signin';
+        const loginData = {email: this.state.signInEmail, password: this.state.signInPassword};
         
         fetch(endpoint, {
             method: 'post',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({email: this.state.signInEmail, password: this.state.signInPassword})
+            body: JSON.stringify(loginData)
         })
         .then(response => response.json())
-        .then(data => {if (data === 'success') this.props.onRouteChange('home');});
+        .then(data => {if (typeof data === 'object' && data !== null && data.hasOwnProperty('email') && data.email === loginData.email){
+            this.props.loadUser(data);
+            this.props.onRouteChange('home');
+        }});
         
     }
 

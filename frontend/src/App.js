@@ -8,6 +8,7 @@ import Rank from './components/Rank/Rank';
 import SignIn from './components/SignIn/SignIn';
 import Register from './components/Register/Register';
 import './App.css';
+import { SERVER_URL } from './constants';
 
 const particleParams = { particles: {number: {value: 80, density: { enable: true, value_area: 800 } }} };
 
@@ -23,7 +24,8 @@ class App extends Component {
       imageUrl: '',
       boxes: [],
       route: '',
-      isLoggedin: false
+      isLoggedin: false,
+      user: {id: '', name: '', email: '', entries: 0, joined: ''}
     }
   }
 /*
@@ -32,6 +34,11 @@ class App extends Component {
     fetch(serverUrl).then(response => response.json()).then(data => console.log(data));
   }
 */
+
+  loadUser = (uData) => {
+    this.setState({user: {id: uData.id, name: uData.name, email: uData.email, entries: uData.entries, joined: uData.joined}})
+  }
+
   setBoxStates = (responsedata) => {
     const boundingboxes = responsedata.outputs[0].data.regions.map( regiondata => { return regiondata.region_info.bounding_box; } );
     const image = document.getElementById("inputimage");
@@ -59,10 +66,25 @@ class App extends Component {
     this.setState({input: event.target.value});
   }
 
-  onButtonSubmit = () => {
+  onImageUrlSubmit = () => {
+    const { user } = this.state;
     this.setState({imageUrl: this.state.input});
     clarifaiapp.models.predict(Clarifai.FACE_DETECT_MODEL, this.state.input)
-    .then( response => this.setBoxStates(response) )
+    .then( response => {
+      if (response){
+        const endpoint = SERVER_URL + '/entry';
+        fetch(endpoint, {
+          method: 'put',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({id: user.id})
+        }) 
+        .then(response => response.json())
+        .then(data => {if (typeof data == 'number'){
+          this.setState(Object.assign(this.state.user, {entries: data}))
+        }});
+      this.setBoxStates(response)
+      }
+    })
     .catch(err => console.log(err));
   }
 
@@ -77,6 +99,7 @@ class App extends Component {
 
   render() {
     const {isLoggedin, imageUrl, route, boxes} = this.state;
+    const {name, entries} = this.state.user;
     
     return (
       <div className="App">
@@ -85,14 +108,14 @@ class App extends Component {
         {isLoggedin
         ?
         <div>
-        <Rank />
-        <ImageLinkForm onInputChange={this.onInputChange} onButtonSubmit={this.onButtonSubmit} />
+        <Rank name={name} entries={entries} />
+        <ImageLinkForm onInputChange={this.onInputChange} onImageUrlSubmit={this.onImageUrlSubmit} />
         <FaceRecImage imageUrl={imageUrl} boxes={boxes} />
         </div>
         : (
           route === 'register'
-          ? <Register onRouteChange={this.onRouteChange} />
-          : <SignIn onRouteChange={this.onRouteChange} />
+          ? <Register onRouteChange={this.onRouteChange} loadUser={this.loadUser} />
+          : <SignIn onRouteChange={this.onRouteChange} loadUser={this.loadUser} />
           )
         }
       </div>

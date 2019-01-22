@@ -19,7 +19,7 @@ app.get('/', (req, res) => {
 });
 app.post('/signin', (req, res) => {
     let output = 'fail';
-    if (req.body.email === database.users[0].email && req.body.password === database.users[0].password) output = 'success';
+    if (req.body.email === database.users[0].email && req.body.password === database.users[0].password) output = database.users[0];
 
     res.json(output);
 });
@@ -36,14 +36,16 @@ app.post('/register', (req, res) => {
 });
 app.put('/entry', (req, res) => {
     const { id } = req.body;
+    let output = 'not-found';
     
-    database.users.forEach(user => {
+    for (let user of database.users) {
         if (user.id === id){
             user.entries++;
-            return user.entries;
+            output = user.entries;
+            break;
         }
-    })
-    return res.status(404).json('not-found');
+    };
+    return res.json(output);
 });
 app.get('/profile/:id', (req, res) => {
     const { id } = req.params;
