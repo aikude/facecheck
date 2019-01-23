@@ -2,58 +2,84 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt-nodejs');
 const cors = require('cors');
+const knex = require('knex')
+
+const db = knex({
+    client: 'pg',
+    connection: {
+      host : '127.0.0.1',
+      user : 'postgres',
+      password : 'aitest',
+      database : 'facecheck'
+    }
+});
 
 const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
-const database = {
-    users: [
-        {id: '123', name: 'John Bull', email: 'john@gm.com', password: 'johnpass', entries: 0, joined: new Date()},
-        {id: '124', name: 'Sally May', email: 'sally@gm.com', password: 'sallypass', entries: 0, joined: new Date()},
-    ]
-}
-
 app.get('/', (req, res) => {
-    res.send(database.users);
+    res.send('Welcome');
 });
+
 app.post('/signin', (req, res) => {
-    let output = 'fail';
-    if (req.body.email === database.users[0].email && req.body.password === database.users[0].password) output = database.users[0];
-
-    res.json(output);
-});
-app.post('/register', (req, res) => {
-    let passwordhash = '';
-    const { email, name, password } = req.body;
-    bcrypt.hash(password, null, null, function(err, hash) {
-        passwordhash = hash;
-    });
+    const { email, password } = req.body;
     
-    database.users.push({id: '125', name: name, email: email, password: passwordhash, entries: 0, joined: new Date()});
-
-    res.json(database.users[database.users.length-1]);
+    db('logins').where('email', '=', email).select('email', 'hash')
+    .then(data => {
+        if (data && data.constructor === Array && data.length > 0){
+            const loginPassed = bcrypt.compareSync(password, data[0].hash);
+            
+            if(loginPassed){
+                db('users').where('email', '=', data[0].email)
+                .then(users => { res.json(users[0]) })
+                .catch(err => { res.status(400).json('error_login'); });
+            }
+            else res.status(400).json('login_failed');
+        }
+        else res.status(400).json('error_login');
+    })
+    .catch(err => { res.status(400).json('error_login'); });
 });
+
+app.post('/register', (req, res) => {
+    const { email, name, password } = req.body;
+    const hash = bcrypt.hashSync(password);
+
+    db.transaction(trx => {
+        trx('logins').insert({hash: hash, email: email}).returning('email')
+        .then(loginEmails => {
+            return trx('users').insert({name: name, email: loginEmails[0], entries: 0, created: new Date()}).returning('*')
+        })
+        .then(trx.commit)
+        .catch(trx.rollback)
+    })
+     .then(data => {
+        if (data && data.constructor === Array && data.length > 0) res.json(data[0]);
+    })
+    .catch(err => { console.log(err); res.status(400).json('signup_failed'); });
+});
+
 app.put('/entry', (req, res) => {
     const { id } = req.body;
-    let output = 'not-found';
     
-    for (let user of database.users) {
-        if (user.id === id){
-            user.entries++;
-            output = user.entries;
-            break;
-        }
-    };
-    return res.json(output);
+    db('users').where('id', '=', id).increment('entries', 1).returning('entries')
+    .then(data => {
+        if (data && data.constructor === Array && data.length > 0 && typeof +data[0] == 'number'){ return res.json(+data[0]); }
+        else { return res.json('update_failed'); }
+    })
+    .catch(err => { res.status(400).json('update_failed'); });
 });
+
 app.get('/profile/:id', (req, res) => {
     const { id } = req.params;
     
-    database.users.forEach(user => {
-        if (user.id === id) return res.json(user);
+    db('users').where({ id: id })
+    .then(data => {
+        if (data && data.constructor === Array && data.length > 0) return res.json(data[0]);
+        else res.status(404).json('user_not_found');
     })
-    return res.status(404).json('not-found');
+    .catch(err => { res.status(400).json('error_getting_user'); });
 });
 
 

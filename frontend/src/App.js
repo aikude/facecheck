@@ -28,12 +28,6 @@ class App extends Component {
       user: {id: '', name: '', email: '', entries: 0, joined: ''}
     }
   }
-/*
-  connectServer(route){
-    const endpoint = serverUrl + '/' + route
-    fetch(serverUrl).then(response => response.json()).then(data => console.log(data));
-  }
-*/
 
   loadUser = (uData) => {
     this.setState({user: {id: uData.id, name: uData.name, email: uData.email, entries: uData.entries, joined: uData.joined}})
