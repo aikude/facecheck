@@ -69,7 +69,7 @@ app.put('/entry', (req, res) => {
         else { return res.json('update_failed'); }
     })
     .catch(err => { res.status(400).json('update_failed'); });
-});
+}); 
 
 app.get('/profile/:id', (req, res) => {
     const { id } = req.params;
