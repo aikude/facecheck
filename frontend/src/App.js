@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import Particles from 'react-particles-js';
-import Clarifai from 'clarifai';
 import Navigation from './components/Navigation/Navigation';
 import ImageLinkForm from './components/ImageLinkForm/ImageLinkForm';
 import FaceRecImage from './components/FaceRecImage/FaceRecImage'; 
@@ -12,21 +11,19 @@ import { SERVER_URL } from './constants';
 
 const particleParams = { particles: {number: {value: 80, density: { enable: true, value_area: 800 } }} };
 
-const clarifaiapp = new Clarifai.App({
-  apiKey: ''
-});
+const initState = {
+  input: '',
+  imageUrl: '',
+  boxes: [],
+  route: '',
+  isLoggedin: false,
+  user: {id: '', name: '', email: '', entries: 0, joined: ''}
+}
 
 class App extends Component {
   constructor(){
-    super()
-    this.state = {
-      input: '',
-      imageUrl: '',
-      boxes: [],
-      route: '',
-      isLoggedin: false,
-      user: {id: '', name: '', email: '', entries: 0, joined: ''}
-    }
+    super();
+    this.state = initState;
   }
 
   loadUser = (uData) => {
@@ -63,7 +60,14 @@ class App extends Component {
   onImageUrlSubmit = () => {
     const { user } = this.state;
     this.setState({imageUrl: this.state.input});
-    clarifaiapp.models.predict(Clarifai.FACE_DETECT_MODEL, this.state.input)
+    const scanServer = SERVER_URL + '/scanServer';
+
+    fetch(scanServer, {
+      method: 'post',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({input: this.state.input})
+    })
+    .then(response => response.json())
     .then( response => {
       if (response){
         const endpoint = SERVER_URL + '/entry';
@@ -75,7 +79,8 @@ class App extends Component {
         .then(response => response.json())
         .then(data => {if (typeof data == 'number'){
           this.setState(Object.assign(this.state.user, {entries: data}))
-        }});
+        }})
+        .catch(err => console.log(err));
       this.setBoxStates(response)
       }
     })
@@ -83,7 +88,7 @@ class App extends Component {
   }
 
   onRouteChange = (route) => {
-    if (route === 'signout') this.setState({isLoggedin: false});
+    if (route === 'signout') this.setState(initState);
     else if (route === 'home'){
       this.setState({isLoggedin: true});
     }

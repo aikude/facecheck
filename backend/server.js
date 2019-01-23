@@ -2,7 +2,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt-nodejs');
 const cors = require('cors');
-const knex = require('knex')
+const knex = require('knex');
+const Clarifai = require('clarifai');
 
 const db = knex({
     client: 'pg',
@@ -18,8 +19,18 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
+const clarifaiapp = new Clarifai.App({
+    apiKey: ''
+});
+
 app.get('/', (req, res) => {
     res.send('Welcome');
+});
+
+app.post('/scanServer', (req, res) => {
+    clarifaiapp.models.predict(Clarifai.FACE_DETECT_MODEL, req.body.input)
+    .then(data => { res.json(data); })
+    .catch(err => { res.status(400).json('scanserver_failed'); });
 });
 
 app.post('/signin', (req, res) => {
