@@ -5,23 +5,20 @@ class Register extends React.Component {
     constructor(props){
         super(props);
         this.state = {
-            registerEmail: '',
-            registerPassword: '',
-            registerName: ''
+            email: '',
+            password: '',
+            name: ''
         }
     }
 
-    onFieldChange = (event) => {
-        const field = event.target;
-        if (field.id === 'email-address') this.setState({registerEmail: field.value});
-        else if (field.id === 'password') this.setState({registerPassword: field.value});
-        else if (field.id === 'name') this.setState({registerName: field.value});
-    }
+    onFieldChange = e => this.setState({ [e.target.name]: e.target.value });
 
+    // Handle form submission
     onSubmitRegister = () => {
         const endpoint = SERVER_URL + '/register';
-        const newRegData = {name: this.state.registerName, email: this.state.registerEmail, password: this.state.registerPassword};
+        const newRegData = {name: this.state.name, email: this.state.email, password: this.state.password};
         
+        // Register new user on server
         fetch(endpoint, {
             method: 'post',
             headers: {'Content-Type': 'application/json'},
@@ -50,9 +47,9 @@ class Register extends React.Component {
                         name="name"  id="name" onChange={this.onFieldChange} />
                     </div>
                     <div className="mt3">
-                        <label className="db fw6 lh-copy f6" htmlFor="email-address">Email</label>
+                        <label className="db fw6 lh-copy f6" htmlFor="email">Email</label>
                         <input className="pa2 input-reset ba bg-transparent hover-bg-black hover-white w-100" type="email" 
-                        name="email-address"  id="email-address" onChange={this.onFieldChange} />
+                        name="email"  id="email" onChange={this.onFieldChange} />
                     </div>
                     <div className="mv3">
                         <label className="db fw6 lh-copy f6" htmlFor="password">Password</label>

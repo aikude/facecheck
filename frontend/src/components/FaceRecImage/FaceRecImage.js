@@ -1,19 +1,16 @@
 import React from 'react';
 
-const FaceRecImage = ({ imageUrl, boxes=[] }) => {
-    let boxdivs = [];
+// Displays image in page, and adds facial highlight boxes after face detection scan returns from server
+const FaceRecImage = ({ imageUrl, boundingBoxes=[] }) => {
     const canvas_w = '500px';
-    
-    for (let i=0; i < boxes.length; i++) {
-        let {x1, y1, w, h} = boxes[i];
-        //console.log(x1, y1, w, h);
-        boxdivs.push(<div key={i} className="ba bw1 grow b--light-blue" 
-        style={{ position: 'absolute', zIndex: 1000, top: y1, left: x1, width: w, height: h }}></div>);
-    }
 
     return (
     <div className="center ma3" style={{position: 'relative', width: canvas_w}}>
-        {boxdivs}
+        {
+            boundingBoxes.map((box, i) => <div key={i} className="ba bw1 grow b--light-blue" 
+                style={{ position: 'absolute', zIndex: 1000, top: box.y1, left: box.x1, width: box.w, height: box.h }}></div>
+            )
+        }
         <img id="inputimage" src={imageUrl} alt="" width={canvas_w} height="auto"></img>
     </div>
     )

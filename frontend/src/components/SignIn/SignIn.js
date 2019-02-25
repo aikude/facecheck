@@ -5,20 +5,18 @@ class SignIn extends React.Component {
     constructor(props){
         super(props);
         this.state = {
-            signInEmail: '',
-            signInPassword: ''
+            email: '',
+            password: ''
         }
     }
 
-    onFieldChange = (event) => {
-        const field = event.target;
-        if (field.id === 'email-address') this.setState({signInEmail: field.value});
-        else if (field.id === 'password') this.setState({signInPassword: field.value});
-    }
+    onFieldChange = e => this.setState({ [e.target.name]: e.target.value });
 
+    // Handle submission and login user
+    // Login is for demo purposes, no route level access control here/yet
     onSubmitSignin = () => {
         const endpoint = SERVER_URL + '/signin';
-        const loginData = {email: this.state.signInEmail, password: this.state.signInPassword};
+        const loginData = {email: this.state.email, password: this.state.password};
         
         fetch(endpoint, {
             method: 'post',
@@ -26,7 +24,7 @@ class SignIn extends React.Component {
             body: JSON.stringify(loginData)
         })
         .then(response => response.json())
-        .then(data => {if (typeof data === 'object' && data !== null && data.hasOwnProperty('email') && data.email === loginData.email){
+        .then(data => {if (data && data.hasOwnProperty('email') && data.email === loginData.email){
             this.props.loadUser(data);
             this.props.onRouteChange('home');
         }});
@@ -42,9 +40,9 @@ class SignIn extends React.Component {
                     <fieldset id="sign_up" className="ba b--transparent ph0 mh0">
                     <legend className="f4 fw6 ph0 mh0">Sign In</legend>
                     <div className="mt3">
-                        <label className="db fw6 lh-copy f6" htmlFor="email-address">Email</label>
+                        <label className="db fw6 lh-copy f6" htmlFor="email">Email</label>
                         <input className="pa2 input-reset ba bg-transparent hover-bg-black hover-white w-100" type="email" 
-                            name="email-address"  id="email-address" onChange={this.onFieldChange} />
+                            name="email"  id="email" onChange={this.onFieldChange} />
                     </div>
                     <div className="mv3">
                         <label className="db fw6 lh-copy f6" htmlFor="password">Password</label>

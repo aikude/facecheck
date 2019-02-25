@@ -1,5 +1,6 @@
 import React from 'react';
 
+// Receives inputed image url and submits to server for face detection scan
 const ImageLinkForm = ({ onInputChange, onImageUrlSubmit }) => {
     return (
         <div>

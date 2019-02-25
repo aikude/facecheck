@@ -4,3 +4,5 @@ by detecting and highlighting all the faces found. This is useful for image sort
 
 Todo: Further clean up the code, and make the application smarter over time, hopefully eventually making 
 this part of a robust, high-accuracy system for password-free ID and authentication.
+
+Needs a clarifai API key in server.js to work

@@ -15,24 +15,28 @@ const db = knex({
     }
 });
 
+const SERVER_PORT = 3001;
+const CLARIFY_API_KEY = '';
+
 const app = express();
 app.use(bodyParser.json());
 app.use(cors());
-
-const clarifaiapp = new Clarifai.App({
-    apiKey: ''
-});
 
 app.get('/', (req, res) => {
     res.send('Welcome');
 });
 
+// Scans image and responds with an array of face detection detection objects, one for each face in the image.
 app.post('/scanServer', (req, res) => {
-    clarifaiapp.models.predict(Clarifai.FACE_DETECT_MODEL, req.body.input)
-    .then(data => { res.json(data); })
-    .catch(err => { res.status(400).json('scanserver_failed'); });
+    const clarifaiapp = new Clarifai.App({ apiKey: CLARIFY_API_KEY });
+    const { input } = req.body;
+    
+    clarifaiapp.models.predict(Clarifai.FACE_DETECT_MODEL, input)
+    .then(data => { res.json(data.outputs[0].data.regions); })
+    .catch(err => { res.status(400).json(err); });
 });
 
+// Handle Sign In
 app.post('/signin', (req, res) => {
     const { email, password } = req.body;
     
@@ -53,6 +57,7 @@ app.post('/signin', (req, res) => {
     .catch(err => { res.status(400).json('error_login'); });
 });
 
+// Handle user registration
 app.post('/register', (req, res) => {
     const { email, name, password } = req.body;
     const hash = bcrypt.hashSync(password);
@@ -82,6 +87,7 @@ app.put('/entry', (req, res) => {
     .catch(err => { res.status(400).json('update_failed'); });
 }); 
 
+// Return a user's profile
 app.get('/profile/:id', (req, res) => {
     const { id } = req.params;
     
@@ -94,6 +100,6 @@ app.get('/profile/:id', (req, res) => {
 });
 
 
-app.listen(3001, () => {
-    console.log('App server running on port 3001.');
+app.listen(SERVER_PORT, (serverPort=SERVER_PORT) => {
+    console.log(`App server running on port ${SERVER_PORT}.`);
 });
