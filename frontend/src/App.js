@@ -6,6 +6,7 @@ import FaceRecImage from './components/FaceRecImage/FaceRecImage';
 import Rank from './components/Rank/Rank';
 import SignIn from './components/SignIn/SignIn';
 import Register from './components/Register/Register';
+import ErrorBoundary from './ErrorBoundary';
 import './App.css';
 import { SERVER_URL } from './constants';
 
@@ -66,7 +67,7 @@ class App extends Component {
     const scanServer = SERVER_URL + '/scanServer';
 
     // Load image onpage
-    this.setState({imageUrl: this.state.input});
+    this.setState({imageUrl: this.state.input, boundingBoxes: []});
 
     // Send image url to server for face detection analysis
     // Receve faceDetections data which will be used to generate facial bounding boxes
@@ -116,21 +117,23 @@ class App extends Component {
       <div className="App">
         <Particles classname="particles" params={particleParams} />
         <Navigation onRouteChange={this.onRouteChange} isLoggedin={isLoggedin} />
-        {isLoggedin
-        ?
-        <div>
-        <Rank name={name} entries={entries} />
-        <ImageLinkForm onInputChange={this.onInputChange} onImageUrlSubmit={this.onImageUrlSubmit} />
-        <FaceRecImage imageUrl={imageUrl} boundingBoxes={boundingBoxes} />
-        </div>
-        : (
-          route === 'register'
+        <ErrorBoundary>
+          {isLoggedin
           ?
-          <Register onRouteChange={this.onRouteChange} loadUser={this.loadUser} />
-          :
-          <SignIn onRouteChange={this.onRouteChange} loadUser={this.loadUser} />
-          )
-        }
+          <div>
+          <Rank name={name} entries={entries} />
+          <ImageLinkForm onInputChange={this.onInputChange} onImageUrlSubmit={this.onImageUrlSubmit} />
+          <FaceRecImage imageUrl={imageUrl} boundingBoxes={boundingBoxes} />
+          </div>
+          : (
+            route === 'register'
+            ?
+            <Register onRouteChange={this.onRouteChange} loadUser={this.loadUser} />
+            :
+            <SignIn onRouteChange={this.onRouteChange} loadUser={this.loadUser} />
+            )
+          }
+        </ErrorBoundary>
       </div>
     );
   }
