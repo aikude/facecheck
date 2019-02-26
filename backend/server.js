@@ -100,6 +100,6 @@ app.get('/profile/:id', (req, res) => {
 });
 
 
-app.listen(SERVER_PORT, () => {
-    console.log(`App server running on port ${SERVER_PORT}.`);
+app.listen(SERVER_PORT, (serverPort = SERVER_PORT) => {
+    console.log(`App server running on port ${serverPort}.`);
 });
