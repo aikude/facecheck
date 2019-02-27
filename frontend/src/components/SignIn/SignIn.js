@@ -13,7 +13,7 @@ class SignIn extends React.Component {
     onFieldChange = e => this.setState({ [e.target.name]: e.target.value });
 
     // Handle submission and login user
-    // Login is for demo purposes, no route level access control here/yet
+    // Login is for demo purposes, no authentication implemented
     onSubmitSignin = () => {
         const endpoint = SERVER_URL + '/signin';
         const loginData = {email: this.state.email, password: this.state.password};
